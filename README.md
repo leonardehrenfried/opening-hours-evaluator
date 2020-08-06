@@ -1,0 +1,4 @@
+# OSM opening hours evaluator
+
+
+

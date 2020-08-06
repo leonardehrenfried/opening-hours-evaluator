@@ -1,0 +1,39 @@
+plugins {
+    id "idea"
+    id "application"
+    id "com.github.sherter.google-java-format" version "0.8"
+    id 'com.github.ksoichiro.console.reporter' version '0.6.2'
+}
+
+group 'io.leonard'
+version '1.0.0'
+
+sourceCompatibility = 11
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+compileJava {
+    options.compilerArgs << '-parameters'
+}
+
+ext {
+    junitVersion = '5.6.1'
+}
+
+dependencies {
+    compile group: 'ch.poole', name: 'OpeningHoursParser', version: '0.22.0'
+
+    testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
+    testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
+}
+
+googleJavaFormat {
+    options style: 'AOSP'
+}
+
+test {
+    useJUnitPlatform()
+}
