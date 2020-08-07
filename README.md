@@ -10,7 +10,7 @@ if the POI is open or not at the specified time.
 It's [available on Maven Central](https://mvnrepository.com/artifact/io.leonard/opening-hours-evaluator).
 
 ```
-compile group: 'io.leonard', name: 'opening-hours-evaluator', version: '0.0.3'
+compile group: 'io.leonard', name: 'opening-hours-evaluator', version: '<latest version>'
 ```
 It depends on Simon Poole's `OpeningHoursParser` but since that is not on Maven Central, the dependency is bundled 
 inside the Jar.
