@@ -2,6 +2,7 @@ package io.leonard;
 
 import ch.poole.openinghoursparser.Rule;
 import ch.poole.openinghoursparser.TimeSpan;
+import ch.poole.openinghoursparser.WeekDay;
 import ch.poole.openinghoursparser.WeekDayRange;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -23,7 +24,13 @@ public class OpeningHoursEvaluator {
 
     private static boolean isOpenAtDay(LocalDateTime time, WeekDayRange range) {
         int ordinal = time.getDayOfWeek().ordinal();
-        return range.getStartDay().ordinal() <= ordinal && range.getEndDay().ordinal() >= ordinal;
+        return range.getStartDay().ordinal() <= ordinal && isBeforeEnd(ordinal, range.getEndDay());
+    }
+
+    private static boolean isBeforeEnd(int ordinal, WeekDay weekDay) {
+        // if the end day is null it means that it's just a single day like in "Th 10:00-18:00"
+        if(weekDay == null) return true;
+        else return weekDay.ordinal() >= ordinal;
     }
 
     private static boolean isOpenAtTime(LocalDateTime time, TimeSpan timeSpan) {
