@@ -18,12 +18,6 @@ repositories {
     mavenCentral()
 }
 
-git {
-    implementation 'https://github.com/simonpoole/OpeningHoursParser.git', {
-        tag '0.22.0'
-    }
-}
-
 compileJava {
     options.compilerArgs << '-parameters'
 }
@@ -33,6 +27,8 @@ ext {
 }
 
 dependencies {
+    compileOnly group: 'ch.poole', name: 'OpeningHoursParser', version: '0.22.0'
+
     testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion
     testRuntimeOnly  group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
@@ -44,7 +40,7 @@ googleJavaFormat {
 
 jar {
     from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
@@ -90,9 +86,6 @@ publishing {
                     connection = 'scm:git:https://github.com/leonardehrenfried/opening-hours-evaluator.git'
                     developerConnection = 'scm:git:https://github.com/leonardehrenfried/opening-hours-evaluator.git'
                     url = 'https://github.com/leonardehrenfried/opening-hours-parser'
-                }
-                dependencies {
-
                 }
             }
         }
