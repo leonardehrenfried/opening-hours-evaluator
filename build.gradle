@@ -5,10 +5,11 @@ plugins {
     id "com.github.sherter.google-java-format" version "0.9"
     id 'com.github.ksoichiro.console.reporter' version '0.6.2'
     id 'io.codearte.nexus-staging' version '0.21.2'
+    id 'com.palantir.git-version' version '0.12.3'
 }
 
 group 'io.leonard'
-version '0.0.2'
+version gitVersion()
 
 sourceCompatibility = 11
 
