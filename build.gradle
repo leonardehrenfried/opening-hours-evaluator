@@ -8,7 +8,7 @@ plugins {
 }
 
 group 'io.leonard'
-version '0.0.1'
+version '0.0.2'
 
 sourceCompatibility = 11
 
@@ -87,8 +87,11 @@ publishing {
                 }
                 scm {
                     connection = 'scm:git:https://github.com/leonardehrenfried/opening-hours-evaluator.git'
-                    developerConnection = 'scm:git:https://github.com/leonardehrenfried/opening-hours-parser.git'
+                    developerConnection = 'scm:git:https://github.com/leonardehrenfried/opening-hours-evaluator.git'
                     url = 'https://github.com/leonardehrenfried/opening-hours-parser'
+                }
+                dependencies {
+
                 }
             }
         }
@@ -99,11 +102,15 @@ publishing {
             def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
             credentials {
-                username project.findProperty('ossrhUser') ?: 'secured'
-                password project.findProperty('ossrhPassword') ?: 'secured'
+                username project.findProperty('nexusUsername') ?: 'secured'
+                password project.findProperty('nexusPassword') ?: 'secured'
             }
         }
     }
+}
+
+nexusStaging {
+    delayBetweenRetriesInMillis = 15 * 1000
 }
 
 signing {
