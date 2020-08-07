@@ -1,6 +1,7 @@
 plugins {
     id "idea"
     id "application"
+    id "java"
     id "com.github.sherter.google-java-format" version "0.8"
     id 'com.github.ksoichiro.console.reporter' version '0.6.2'
 }
@@ -20,14 +21,14 @@ compileJava {
 }
 
 ext {
-    junitVersion = '5.6.1'
+    junitVersion = '5.6.2'
 }
 
 dependencies {
-    compile group: 'ch.poole', name: 'OpeningHoursParser', version: '0.22.0'
+    implementation group: 'ch.poole', name: 'OpeningHoursParser', version: '0.22.0'
 
     testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
-    testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
+    testRuntimeOnly  group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
 }
 
 googleJavaFormat {
