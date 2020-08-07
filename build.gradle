@@ -2,10 +2,11 @@ plugins {
     id 'java-library'
     id "com.github.sherter.google-java-format" version "0.9"
     id 'com.github.ksoichiro.console.reporter' version '0.6.2'
+    id 'io.codearte.nexus-staging' version '0.21.2'
 }
 
 group 'io.leonard'
-version '1.0.0'
+version '0.0.1'
 
 sourceCompatibility = 11
 
