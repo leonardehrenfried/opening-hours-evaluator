@@ -30,4 +30,4 @@ jobs:
 
       - name: Compile project, run tests
         run: |
-          ./gradlew test
+          ./gradlew test jar
