@@ -4,6 +4,8 @@ import ch.poole.openinghoursparser.Rule;
 import ch.poole.openinghoursparser.TimeSpan;
 import ch.poole.openinghoursparser.WeekDay;
 import ch.poole.openinghoursparser.WeekDayRange;
+
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
@@ -23,14 +25,12 @@ public class OpeningHoursEvaluator {
     }
 
     private static boolean isOpenAtDay(LocalDateTime time, WeekDayRange range) {
-        int ordinal = time.getDayOfWeek().ordinal();
-        return range.getStartDay().ordinal() <= ordinal && isBeforeEnd(ordinal, range.getEndDay());
-    }
-
-    private static boolean isBeforeEnd(int ordinal, WeekDay weekDay) {
         // if the end day is null it means that it's just a single day like in "Th 10:00-18:00"
-        if(weekDay == null) return true;
-        else return weekDay.ordinal() >= ordinal;
+        if(range.getEndDay() == null) {
+            return time.getDayOfWeek().equals(toDayOfWeek(range.getStartDay()));
+        }
+        int ordinal = time.getDayOfWeek().ordinal();
+        return range.getStartDay().ordinal() <= ordinal && range.getEndDay().ordinal() >= ordinal;
     }
 
     private static boolean isOpenAtTime(LocalDateTime time, TimeSpan timeSpan) {
@@ -46,5 +46,16 @@ public class OpeningHoursEvaluator {
     private static <T> List<T> nullToEmptyList(List<T> list) {
         if (list == null) return Collections.emptyList();
         else return list;
+    }
+
+    private static DayOfWeek toDayOfWeek(WeekDay day) {
+        if(day == WeekDay.MO) return DayOfWeek.MONDAY;
+        else if(day == WeekDay.TU) return DayOfWeek.TUESDAY;
+        else if(day == WeekDay.WE) return DayOfWeek.WEDNESDAY;
+        else if(day == WeekDay.TH) return DayOfWeek.THURSDAY;
+        else if(day == WeekDay.FR) return DayOfWeek.FRIDAY;
+        else if(day == WeekDay.SA) return DayOfWeek.SATURDAY;
+        else if(day == WeekDay.SU) return DayOfWeek.SUNDAY;
+        else return null;
     }
 }
