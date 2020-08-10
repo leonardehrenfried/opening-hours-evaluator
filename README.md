@@ -24,6 +24,9 @@ var rules = parser.rules(true);
 var time = LocalDateTime.parse("2020-08-07T12:09:17")
 OpeningHoursEvaluator.isOpenAt(time, rules)
 ```
+### Completeness
 
-
-
+Since the [opening hours specification](https://wiki.openstreetmap.org/wiki/Key:opening_hours/specification) is complex, 
+not every feature is supported. To get an idea of what exactly is working, please check the unit test input files 
+[`open.csv`](https://github.com/leonardehrenfried/opening-hours-evaluator/blob/master/src/test/resources/open.csv) 
+and [`closed.csv`](https://github.com/leonardehrenfried/opening-hours-evaluator/blob/master/src/test/resources/closed.csv).
