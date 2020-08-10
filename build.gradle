@@ -75,7 +75,7 @@ publishing {
             pom {
                 name = 'OpenStreetMap Opening Hours evaluator'
                 description = 'Evaluator for OpenStreetMap-formatted opening hours'
-                url = 'http://javers.org'
+                url = 'https://github.com/leonardehrenfried/opening-hours-evaluator'
                 licenses {
                     license {
                         name = 'MIT'
