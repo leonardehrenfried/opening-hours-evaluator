@@ -15,7 +15,7 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 public class OpeningHoursEvaluatorTest {
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/open.csv", delimiter = ',')
+    @CsvFileSource(resources = "/open.csv")
     void shouldEvaluateAsOpen(String time, String openingHours) throws OpeningHoursParseException {
         var rules = parseOpeningHours(openingHours);
         var parsed = LocalDateTime.parse(time);
@@ -23,7 +23,7 @@ public class OpeningHoursEvaluatorTest {
     }
 
     @ParameterizedTest
-    @CsvFileSource(resources = "/closed.csv", delimiter = ',')
+    @CsvFileSource(resources = "/closed.csv")
     void shouldEvaluateAsClosed(String time, String openingHours)
             throws OpeningHoursParseException {
         var rules = parseOpeningHours(openingHours);
