@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -21,6 +22,21 @@ public class OpeningHoursEvaluator {
     var open = getOpenRules(rules);
     return closed.noneMatch(rule -> timeMatchesRule(time, rule))
         && open.anyMatch(rule -> rule.isTwentyfourseven() || timeMatchesRule(time, rule));
+  }
+
+  public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules) {
+    if (isOpenAt(time, rules)) return Optional.of(time);
+    else {
+      var open = getOpenRules(rules);
+      return open.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+          .findFirst()
+          .map(
+              r -> {
+                var minutesSinceMidnight = r.getTimes().get(0).getStart();
+                return time.toLocalDate()
+                    .atTime(LocalTime.ofSecondOfDay(minutesSinceMidnight * 60));
+              });
+    }
   }
 
   private static Stream<Rule> getOpenRules(List<Rule> rules) {
@@ -41,10 +57,13 @@ public class OpeningHoursEvaluator {
   }
 
   private static boolean timeMatchesRule(LocalDateTime time, Rule rule) {
-    return nullToEmptyList(rule.getDays()).stream()
-            .anyMatch(dayRange -> timeMatchesDay(time, dayRange))
+    return timeMatchesDayRanges(time, rule.getDays())
         && nullToEntireDay(rule.getTimes()).stream()
             .anyMatch(timeSpan -> timeMatchesHours(time, timeSpan));
+  }
+
+  private static boolean timeMatchesDayRanges(LocalDateTime time, List<WeekDayRange> ranges) {
+    return nullToEmptyList(ranges).stream().anyMatch(dayRange -> timeMatchesDay(time, dayRange));
   }
 
   private static boolean timeMatchesDay(LocalDateTime time, WeekDayRange range) {
