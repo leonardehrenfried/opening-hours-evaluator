@@ -2,7 +2,7 @@ plugins {
     id 'maven-publish'
     id 'signing'
     id 'java-library'
-    id "com.github.sherter.google-java-format" version "0.9"
+    id "com.diffplug.spotless" version "5.1.1"
     id 'com.github.ksoichiro.console.reporter' version '0.6.2'
     id 'io.codearte.nexus-staging' version '0.21.2'
     id 'com.palantir.git-version' version '0.12.3'
@@ -39,8 +39,13 @@ dependencies {
     testImplementation group: 'ch.poole', name: 'OpeningHoursParser', version: parserVersion
 }
 
-googleJavaFormat {
-    options style: 'AOSP'
+spotless {
+    java {
+        importOrder()
+        removeUnusedImports()
+
+        googleJavaFormat()
+    }
 }
 
 jar {

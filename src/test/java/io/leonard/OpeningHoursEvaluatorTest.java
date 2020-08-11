@@ -14,25 +14,24 @@ import org.junit.jupiter.params.provider.CsvFileSource;
 
 public class OpeningHoursEvaluatorTest {
 
-    @ParameterizedTest
-    @CsvFileSource(resources = "/open.csv")
-    void shouldEvaluateAsOpen(String time, String openingHours) throws OpeningHoursParseException {
-        var rules = parseOpeningHours(openingHours);
-        var parsed = LocalDateTime.parse(time);
-        assertTrue(OpeningHoursEvaluator.isOpenAt(parsed, rules));
-    }
+  @ParameterizedTest
+  @CsvFileSource(resources = "/open.csv")
+  void shouldEvaluateAsOpen(String time, String openingHours) throws OpeningHoursParseException {
+    var rules = parseOpeningHours(openingHours);
+    var parsed = LocalDateTime.parse(time);
+    assertTrue(OpeningHoursEvaluator.isOpenAt(parsed, rules));
+  }
 
-    @ParameterizedTest
-    @CsvFileSource(resources = "/closed.csv")
-    void shouldEvaluateAsClosed(String time, String openingHours)
-            throws OpeningHoursParseException {
-        var rules = parseOpeningHours(openingHours);
-        var parsed = LocalDateTime.parse(time);
-        assertFalse(OpeningHoursEvaluator.isOpenAt(parsed, rules));
-    }
+  @ParameterizedTest
+  @CsvFileSource(resources = "/closed.csv")
+  void shouldEvaluateAsClosed(String time, String openingHours) throws OpeningHoursParseException {
+    var rules = parseOpeningHours(openingHours);
+    var parsed = LocalDateTime.parse(time);
+    assertFalse(OpeningHoursEvaluator.isOpenAt(parsed, rules));
+  }
 
-    private List<Rule> parseOpeningHours(String openingHours) throws OpeningHoursParseException {
-        var parser = new OpeningHoursParser(new ByteArrayInputStream(openingHours.getBytes()));
-        return parser.rules(true);
-    }
+  private List<Rule> parseOpeningHours(String openingHours) throws OpeningHoursParseException {
+    var parser = new OpeningHoursParser(new ByteArrayInputStream(openingHours.getBytes()));
+    return parser.rules(true);
+  }
 }
