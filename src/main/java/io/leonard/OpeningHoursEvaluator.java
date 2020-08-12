@@ -14,6 +14,10 @@ public class OpeningHoursEvaluator {
   private static final Set<RuleModifier.Modifier> CLOSED_MODIFIERS = Set.of(CLOSED, OFF);
   private static final Set<RuleModifier.Modifier> OPEN_MODIFIERS = Set.of(OPEN, UNKNOWN);
 
+  // when calculating the next time the hours are open, how many days should you go into the future
+  // this protects against stack overflows when the place is never going to open again
+  private static final int MAX_SEARCH_DAYS = 365 * 10;
+
   public static boolean isOpenAt(LocalDateTime time, List<Rule> rules) {
     var closed = getClosedRules(rules);
     var open = getOpenRules(rules);
@@ -21,7 +25,12 @@ public class OpeningHoursEvaluator {
         && open.anyMatch(rule -> rule.isTwentyfourseven() || timeMatchesRule(time, rule));
   }
 
+
   public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules) {
+    return isOpenNext(time, rules, 0);
+  };
+
+  private static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules, int counter) {
     if (isOpenAt(time, rules)) return Optional.of(time);
     else {
       var open = getOpenRules(rules);
@@ -36,11 +45,14 @@ public class OpeningHoursEvaluator {
           .findFirst()
           .map(timeRange -> time.toLocalDate().atTime(timeRange.start));
 
+      if(counter >= MAX_SEARCH_DAYS){
+        return Optional.empty();
+      }
       // if we cannot find time on the same day when the POI is open, we skip forward to the start of the following day
       // and try again
-      if(closesOpeningThatDay.isEmpty()) {
+      else if(closesOpeningThatDay.isEmpty()) {
         var midnightNextDay = time.toLocalDate().plusDays(1).atStartOfDay();
-        return isOpenNext(midnightNextDay, rules);
+        return isOpenNext(midnightNextDay, rules, ++counter);
       } else return closesOpeningThatDay;
     }
   }
