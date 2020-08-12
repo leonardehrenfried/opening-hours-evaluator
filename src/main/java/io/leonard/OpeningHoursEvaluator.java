@@ -25,12 +25,12 @@ public class OpeningHoursEvaluator {
         && open.anyMatch(rule -> rule.isTwentyfourseven() || timeMatchesRule(time, rule));
   }
 
-
   public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules) {
     return isOpenNext(time, rules, 0);
   };
 
-  private static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules, int counter) {
+  private static Optional<LocalDateTime> isOpenNext(
+      LocalDateTime time, List<Rule> rules, int counter) {
     if (isOpenAt(time, rules)) return Optional.of(time);
     else {
       var open = getOpenRules(rules);
@@ -39,21 +39,21 @@ public class OpeningHoursEvaluator {
               .filter(r -> !Objects.isNull(r.getTimes()))
               .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
 
-      var closesOpeningThatDay = timeRangesOnThatDay
-          .filter(range -> range.start.isAfter(time.toLocalTime()))
-          .sorted()
-          .findFirst()
-          .map(timeRange -> time.toLocalDate().atTime(timeRange.start));
+      var closestOpeningThatDay =
+          timeRangesOnThatDay
+              .filter(range -> range.start.isAfter(time.toLocalTime()))
+              .min(TimeRange.comparator)
+              .map(timeRange -> time.toLocalDate().atTime(timeRange.start));
 
-      if(counter >= MAX_SEARCH_DAYS){
+      if (counter >= MAX_SEARCH_DAYS) {
         return Optional.empty();
       }
-      // if we cannot find time on the same day when the POI is open, we skip forward to the start of the following day
-      // and try again
-      else if(closesOpeningThatDay.isEmpty()) {
+      // if we cannot find time on the same day when the POI is open, we skip forward to the start
+      // of the following day and try again
+      else if (closestOpeningThatDay.isEmpty()) {
         var midnightNextDay = time.toLocalDate().plusDays(1).atStartOfDay();
         return isOpenNext(midnightNextDay, rules, ++counter);
-      } else return closesOpeningThatDay;
+      } else return closestOpeningThatDay;
     }
   }
 
