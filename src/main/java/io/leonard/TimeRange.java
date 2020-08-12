@@ -14,6 +14,10 @@ public class TimeRange {
     this.end = LocalTime.ofSecondOfDay(span.getEnd() * 60);
   }
 
+  public boolean surrounds(LocalTime time) {
+    return time.isAfter(start) && time.isBefore(end);
+  }
+
   public static Comparator<TimeRange> comparator =
-      (timeRange, t1) -> timeRange.start.compareTo(t1.start);
+      Comparator.comparing(timeRange -> timeRange.start);
 }

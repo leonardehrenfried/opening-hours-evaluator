@@ -34,27 +34,40 @@ public class OpeningHoursEvaluator {
     if (isOpenAt(time, rules)) return Optional.of(time);
     else {
       var open = getOpenRules(rules);
-      var timeRangesOnThatDay =
-          open.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
-              .filter(r -> !Objects.isNull(r.getTimes()))
-              .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
+      var closed = getClosedRules(rules);
 
-      var closestOpeningThatDay =
-          timeRangesOnThatDay
+      var openRangesOnThatDay = getTimeRangesOnThatDay(time, open);
+      var closedRangesThatDay = getTimeRangesOnThatDay(time, closed);
+
+      var endOfExclusion =
+          closedRangesThatDay
+              .filter(r -> r.surrounds(time.toLocalTime()))
+              .findFirst()
+              .map(r -> time.toLocalDate().atTime(r.end));
+      var startOfNextOpening =
+          openRangesOnThatDay
               .filter(range -> range.start.isAfter(time.toLocalTime()))
               .min(TimeRange.comparator)
               .map(timeRange -> time.toLocalDate().atTime(timeRange.start));
+
+      var opensNextThatDay = endOfExclusion.or(() -> startOfNextOpening);
 
       if (counter >= MAX_SEARCH_DAYS) {
         return Optional.empty();
       }
       // if we cannot find time on the same day when the POI is open, we skip forward to the start
       // of the following day and try again
-      else if (closestOpeningThatDay.isEmpty()) {
+      else if (opensNextThatDay.isEmpty()) {
         var midnightNextDay = time.toLocalDate().plusDays(1).atStartOfDay();
         return isOpenNext(midnightNextDay, rules, ++counter);
-      } else return closestOpeningThatDay;
+      } else return opensNextThatDay;
     }
+  }
+
+  private static Stream<TimeRange> getTimeRangesOnThatDay(LocalDateTime time, Stream<Rule> open) {
+    return open.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+        .filter(r -> !Objects.isNull(r.getTimes()))
+        .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
   }
 
   private static Stream<Rule> getOpenRules(List<Rule> rules) {
