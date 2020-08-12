@@ -8,7 +8,6 @@ import ch.poole.openinghoursparser.Rule;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
 

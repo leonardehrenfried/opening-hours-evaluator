@@ -6,10 +6,7 @@ import ch.poole.openinghoursparser.*;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class OpeningHoursEvaluator {
@@ -28,14 +25,23 @@ public class OpeningHoursEvaluator {
     if (isOpenAt(time, rules)) return Optional.of(time);
     else {
       var open = getOpenRules(rules);
-      return open.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+      var timeRangesOnThatDay =
+          open.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+              .filter(r -> !Objects.isNull(r.getTimes()))
+              .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
+
+      var closesOpeningThatDay = timeRangesOnThatDay
+          .filter(range -> range.start.isAfter(time.toLocalTime()))
+          .sorted()
           .findFirst()
-          .map(
-              r -> {
-                var minutesSinceMidnight = r.getTimes().get(0).getStart();
-                return time.toLocalDate()
-                    .atTime(LocalTime.ofSecondOfDay(minutesSinceMidnight * 60));
-              });
+          .map(timeRange -> time.toLocalDate().atTime(timeRange.start));
+
+      // if we cannot find time on the same day when the POI is open, we skip forward to the start of the following day
+      // and try again
+      if(closesOpeningThatDay.isEmpty()) {
+        var midnightNextDay = time.toLocalDate().plusDays(1).atStartOfDay();
+        return isOpenNext(midnightNextDay, rules);
+      } else return closesOpeningThatDay;
     }
   }
 
