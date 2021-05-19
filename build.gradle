@@ -28,9 +28,7 @@ ext {
 }
 
 dependencies {
-    // by using the compile time classpath we add the parser classes to the jar but the dependency doesn't end up
-    // in the POM's <dependency> block
-    compileOnly group: 'ch.poole', name: 'OpeningHoursParser', version: parserVersion
+    implementation group: 'ch.poole', name: 'OpeningHoursParser', version: '0.23.2'
 
     testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion

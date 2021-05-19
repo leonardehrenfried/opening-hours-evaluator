@@ -12,8 +12,6 @@ It's [available on Maven Central](https://mvnrepository.com/artifact/io.leonard/
 ```
 compile group: 'io.leonard', name: 'opening-hours-evaluator', version: '<latest version>'
 ```
-It depends on Simon Poole's `OpeningHoursParser` but since that is not on Maven Central, the dependency is bundled 
-inside the Jar.
 
 ### Usage
 
