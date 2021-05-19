@@ -43,7 +43,7 @@ public class OpeningHoursEvaluatorTest {
   }
 
   @ParameterizedTest
-  @CsvFileSource(resources = "/open-before.csv", numLinesToSkip = 1)
+  @CsvFileSource(resources = "/was-last-open.csv", numLinesToSkip = 1)
   void shouldCalculateWhenItWasLastOpen(String time, String openingHours, String openBefore)
           throws OpeningHoursParseException {
     var rules = parseOpeningHours(openingHours);
