@@ -14,7 +14,6 @@ version gitVersion()
 sourceCompatibility = 11
 
 repositories {
-    jcenter()
     mavenCentral()
 }
 
@@ -43,14 +42,6 @@ spotless {
         removeUnusedImports()
 
         googleJavaFormat()
-    }
-}
-
-jar {
-    from {
-        // by using the compile time classpath we add the parser classes to the jar but the dependency doesn't end up
-        // in the POM's <dependency> block
-        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
