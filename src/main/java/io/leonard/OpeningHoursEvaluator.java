@@ -82,12 +82,12 @@ public class OpeningHoursEvaluator {
                 forward ?
                         openRangesOnThatDay
                                 .filter(range -> range.start.isAfter(time.toLocalTime()))
-                                .min(TimeRange.comparator)
+                                .min(TimeRange.startComparator)
                                 .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
                         :
                         openRangesOnThatDay
                                 .filter(range -> range.end.isBefore(time.toLocalTime()))
-                                .max(TimeRange.comparator)
+                                .max(TimeRange.endComparator)
                                 .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
 
         var opensNextThatDay = endOfExclusion.or(() -> startOfNextOpening);
