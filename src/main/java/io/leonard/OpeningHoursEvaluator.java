@@ -38,59 +38,72 @@ public class OpeningHoursEvaluator {
   }
 
   public static Optional<LocalDateTime> wasLastOpen(LocalDateTime time, List<Rule> rules) {
-    return isOpenIterative(time, rules, false, 0);
+    return isOpenIterative(time, rules, false, MAX_SEARCH_DAYS);
+  };
+
+  public static Optional<LocalDateTime> wasLastOpen(LocalDateTime time, List<Rule> rules, int searchDays) {
+    return isOpenIterative(time, rules, false, searchDays);
   };
 
   public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules) {
-    return isOpenIterative(time, rules, true, 0);
+    return isOpenIterative(time, rules, true, MAX_SEARCH_DAYS);
+  };
+
+  public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules, int searchDays) {
+    return isOpenIterative(time, rules, true, searchDays);
   };
 
   private static Optional<LocalDateTime> isOpenIterative(
-      LocalDateTime time, List<Rule> rules, boolean forward, int counter) {
-    if (isOpenAt(time, rules)) return Optional.of(time);
-    else {
+      final LocalDateTime initialTime, final List<Rule> rules, boolean forward, final int searchDays) {
+
+    var nextTime = initialTime;
+    for (var iterations = 0; iterations <= searchDays; ++iterations) {
       var open = getOpenRules(rules);
       var closed = getClosedRules(rules);
 
-      var openRangesOnThatDay = getTimeRangesOnThatDay(time, open);
-      var closedRangesThatDay = getTimeRangesOnThatDay(time, closed);
+      var time = nextTime;
+      if (isOpenAt(time, rules)) return Optional.of(time);
+      else {
 
-      var endOfExclusion = forward
-            ? closedRangesThatDay
+        var openRangesOnThatDay = getTimeRangesOnThatDay(time, open);
+        var closedRangesThatDay = getTimeRangesOnThatDay(time, closed);
+
+        var endOfExclusion = forward
+                ? closedRangesThatDay
                 .filter(r -> r.surrounds(time.toLocalTime()))
                 .findFirst()
                 .map(r -> time.toLocalDate().atTime(r.end))
-            : closedRangesThatDay
+                : closedRangesThatDay
                 .filter(r -> r.surrounds(time.toLocalTime()))
                 .findFirst()
                 .map(r -> time.toLocalDate().atTime(r.start));
 
-      var startOfNextOpening =
-              forward ?
-                      openRangesOnThatDay
-                              .filter(range -> range.start.isAfter(time.toLocalTime()))
-                              .min(TimeRange.comparator)
-                              .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
-                      :
-                      openRangesOnThatDay
-                              .filter(range -> range.end.isBefore(time.toLocalTime()))
-                              .max(TimeRange.comparator)
-                              .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
+        var startOfNextOpening =
+                forward ?
+                        openRangesOnThatDay
+                                .filter(range -> range.start.isAfter(time.toLocalTime()))
+                                .min(TimeRange.comparator)
+                                .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
+                        :
+                        openRangesOnThatDay
+                                .filter(range -> range.end.isBefore(time.toLocalTime()))
+                                .max(TimeRange.comparator)
+                                .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
 
-      var opensNextThatDay = endOfExclusion.or(() -> startOfNextOpening);
+        var opensNextThatDay = endOfExclusion.or(() -> startOfNextOpening);
+        if (opensNextThatDay.isPresent()) {
+          return opensNextThatDay;
+        }
 
-      if (counter >= MAX_SEARCH_DAYS) {
-        return Optional.empty();
-      }
-      // if we cannot find time on the same day when the POI is open, we skip forward to the start
-      // of the following day and try again
-      else if (opensNextThatDay.isEmpty()) {
-        var midnightNextDay = forward
+        // if we cannot find time on the same day when the POI is open, we skip forward to the start
+        // of the following day and try again
+        nextTime = forward
                 ? time.toLocalDate().plusDays(1).atStartOfDay()
                 : time.toLocalDate().minusDays(1).atTime(LocalTime.MAX);
-        return isOpenIterative(midnightNextDay, rules, forward, ++counter);
-      } else return opensNextThatDay;
+      }
     }
+
+    return Optional.empty();
   }
 
   private static Stream<TimeRange> getTimeRangesOnThatDay(LocalDateTime time, Stream<Rule> open) {
