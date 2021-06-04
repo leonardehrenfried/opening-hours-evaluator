@@ -27,7 +27,7 @@ ext {
 }
 
 dependencies {
-    implementation group: 'ch.poole', name: 'OpeningHoursParser', version: '0.23.2'
+    api group: 'ch.poole', name: 'OpeningHoursParser', version: '0.23.2'
 
     testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion
