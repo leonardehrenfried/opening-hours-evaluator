@@ -1,18 +1,17 @@
 package io.leonard;
 
-import ch.poole.openinghoursparser.OpeningHoursParseException;
-import ch.poole.openinghoursparser.OpeningHoursParser;
-import ch.poole.openinghoursparser.Rule;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvFileSource;
-
-import java.io.ByteArrayInputStream;
-import java.time.LocalDateTime;
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import ch.poole.openinghoursparser.OpeningHoursParseException;
+import ch.poole.openinghoursparser.OpeningHoursParser;
+import ch.poole.openinghoursparser.Rule;
+import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvFileSource;
 
 public class OpeningHoursEvaluatorTest {
 
@@ -45,7 +44,7 @@ public class OpeningHoursEvaluatorTest {
   @ParameterizedTest
   @CsvFileSource(resources = "/was-last-open.csv", numLinesToSkip = 1)
   void shouldCalculateWhenItWasLastOpen(String time, String openingHours, String openBefore)
-          throws OpeningHoursParseException {
+      throws OpeningHoursParseException {
     var rules = parseOpeningHours(openingHours);
     var parsed = LocalDateTime.parse(time);
     var lastOpenTime = LocalDateTime.parse(openBefore);

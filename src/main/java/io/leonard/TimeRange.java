@@ -11,7 +11,8 @@ public class TimeRange {
 
   public TimeRange(TimeSpan span) {
     this.start = LocalTime.ofSecondOfDay(span.getStart() * 60L);
-    this.end = LocalTime.ofSecondOfDay(Math.min(span.getEnd() * 60L, LocalTime.MAX.toSecondOfDay()));
+    this.end =
+        LocalTime.ofSecondOfDay(Math.min(span.getEnd() * 60L, LocalTime.MAX.toSecondOfDay()));
   }
 
   public boolean surrounds(LocalTime time) {
@@ -22,5 +23,5 @@ public class TimeRange {
       Comparator.comparing(timeRange -> timeRange.start);
 
   public static Comparator<TimeRange> endComparator =
-          Comparator.comparing(timeRange -> timeRange.end);
+      Comparator.comparing(timeRange -> timeRange.end);
 }

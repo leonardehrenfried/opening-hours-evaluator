@@ -1,11 +1,15 @@
 package io.leonard;
 
+import static ch.poole.openinghoursparser.RuleModifier.Modifier.CLOSED;
+import static ch.poole.openinghoursparser.RuleModifier.Modifier.OFF;
+import static ch.poole.openinghoursparser.RuleModifier.Modifier.OPEN;
+import static ch.poole.openinghoursparser.RuleModifier.Modifier.UNKNOWN;
+
 import ch.poole.openinghoursparser.Rule;
 import ch.poole.openinghoursparser.RuleModifier;
 import ch.poole.openinghoursparser.TimeSpan;
 import ch.poole.openinghoursparser.WeekDay;
 import ch.poole.openinghoursparser.WeekDayRange;
-
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -15,11 +19,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.CLOSED;
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.OFF;
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.OPEN;
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.UNKNOWN;
 
 public class OpeningHoursEvaluator {
 
@@ -41,7 +40,8 @@ public class OpeningHoursEvaluator {
     return isOpenIterative(time, rules, false, MAX_SEARCH_DAYS);
   };
 
-  public static Optional<LocalDateTime> wasLastOpen(LocalDateTime time, List<Rule> rules, int searchDays) {
+  public static Optional<LocalDateTime> wasLastOpen(
+      LocalDateTime time, List<Rule> rules, int searchDays) {
     return isOpenIterative(time, rules, false, searchDays);
   };
 
@@ -49,12 +49,16 @@ public class OpeningHoursEvaluator {
     return isOpenIterative(time, rules, true, MAX_SEARCH_DAYS);
   };
 
-  public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules, int searchDays) {
+  public static Optional<LocalDateTime> isOpenNext(
+      LocalDateTime time, List<Rule> rules, int searchDays) {
     return isOpenIterative(time, rules, true, searchDays);
   };
 
   private static Optional<LocalDateTime> isOpenIterative(
-      final LocalDateTime initialTime, final List<Rule> rules, boolean forward, final int searchDays) {
+      final LocalDateTime initialTime,
+      final List<Rule> rules,
+      boolean forward,
+      final int searchDays) {
 
     var nextTime = initialTime;
     for (var iterations = 0; iterations <= searchDays; ++iterations) {
@@ -68,27 +72,27 @@ public class OpeningHoursEvaluator {
         var openRangesOnThatDay = getTimeRangesOnThatDay(time, open);
         var closedRangesThatDay = getTimeRangesOnThatDay(time, closed);
 
-        var endOfExclusion = forward
+        var endOfExclusion =
+            forward
                 ? closedRangesThatDay
-                .filter(r -> r.surrounds(time.toLocalTime()))
-                .findFirst()
-                .map(r -> time.toLocalDate().atTime(r.end))
+                    .filter(r -> r.surrounds(time.toLocalTime()))
+                    .findFirst()
+                    .map(r -> time.toLocalDate().atTime(r.end))
                 : closedRangesThatDay
-                .filter(r -> r.surrounds(time.toLocalTime()))
-                .findFirst()
-                .map(r -> time.toLocalDate().atTime(r.start));
+                    .filter(r -> r.surrounds(time.toLocalTime()))
+                    .findFirst()
+                    .map(r -> time.toLocalDate().atTime(r.start));
 
         var startOfNextOpening =
-                forward ?
-                        openRangesOnThatDay
-                                .filter(range -> range.start.isAfter(time.toLocalTime()))
-                                .min(TimeRange.startComparator)
-                                .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
-                        :
-                        openRangesOnThatDay
-                                .filter(range -> range.end.isBefore(time.toLocalTime()))
-                                .max(TimeRange.endComparator)
-                                .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
+            forward
+                ? openRangesOnThatDay
+                    .filter(range -> range.start.isAfter(time.toLocalTime()))
+                    .min(TimeRange.startComparator)
+                    .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
+                : openRangesOnThatDay
+                    .filter(range -> range.end.isBefore(time.toLocalTime()))
+                    .max(TimeRange.endComparator)
+                    .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
 
         var opensNextThatDay = endOfExclusion.or(() -> startOfNextOpening);
         if (opensNextThatDay.isPresent()) {
@@ -97,7 +101,8 @@ public class OpeningHoursEvaluator {
 
         // if we cannot find time on the same day when the POI is open, we skip forward to the start
         // of the following day and try again
-        nextTime = forward
+        nextTime =
+            forward
                 ? time.toLocalDate().plusDays(1).atStartOfDay()
                 : time.toLocalDate().minusDays(1).atTime(LocalTime.MAX);
       }
