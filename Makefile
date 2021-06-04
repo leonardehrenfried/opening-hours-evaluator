@@ -1,3 +1,3 @@
 release:
-	./gradlew test jar publish closeAndReleaseRepository
+	./gradlew clean test jar publish closeAndReleaseRepository
 	git push --tags
