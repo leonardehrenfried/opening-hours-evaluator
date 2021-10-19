@@ -31,7 +31,7 @@ public class OpeningHoursEvaluatorTest {
     var parsed = LocalDateTime.parse(time);
     var nullableOpenUntil = openUntil.equals("None") ? null : LocalDateTime.parse(openUntil);
     var expected = Optional.ofNullable(nullableOpenUntil);
-    assertEquals(expected, OpeningHoursEvaluator.isOpenAtUntil(parsed, rules));
+    assertEquals(expected, OpeningHoursEvaluator.isOpenUntil(parsed, rules));
   }
 
   @ParameterizedTest

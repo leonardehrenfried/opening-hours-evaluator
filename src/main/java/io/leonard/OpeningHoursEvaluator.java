@@ -46,7 +46,7 @@ public class OpeningHoursEvaluator {
    * @return LocalDateTime in Optional, representing next closing time ;
    * or empty Optional if place is either closed at time or never closed at all.
    */
-  public static Optional<LocalDateTime> isOpenAtUntil(LocalDateTime time, List<Rule> rules) {
+  public static Optional<LocalDateTime> isOpenUntil(LocalDateTime time, List<Rule> rules) {
     var closed = getClosedRules(rules);
     var open = getOpenRules(rules);
     if (closed.anyMatch(rule -> timeMatchesRule(time, rule))) return Optional.empty();
