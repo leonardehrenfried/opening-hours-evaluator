@@ -78,16 +78,10 @@ public class OpeningHoursEvaluator {
         var openRangesOnThatDay = getTimeRangesOnThatDay(time, open);
         var closedRangesThatDay = getTimeRangesOnThatDay(time, closed);
 
-        var endOfExclusion =
-            forward
-                ? closedRangesThatDay
-                    .filter(r -> r.surrounds(time.toLocalTime()))
-                    .findFirst()
-                    .map(r -> time.toLocalDate().atTime(r.end))
-                : closedRangesThatDay
-                    .filter(r -> r.surrounds(time.toLocalTime()))
-                    .findFirst()
-                    .map(r -> time.toLocalDate().atTime(r.start));
+        var endOfExclusion = closedRangesThatDay
+            .filter(r -> r.surrounds(time.toLocalTime()))
+            .findFirst()
+            .map(r -> time.toLocalDate().atTime(forward ? r.end : r.start));
 
         var startOfNextOpening =
             forward
