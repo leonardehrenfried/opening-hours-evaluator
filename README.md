@@ -24,6 +24,15 @@ var time = LocalDateTime.parse("2020-08-07T12:09:17");
 OpeningHoursEvaluator.isOpenAt(time, rules);
 ```
 
+#### When does it close then?
+```java
+var openingHours = "Mo-Fr 09:00-18:00"
+var parser = new OpeningHoursParser(new ByteArrayInputStream(openingHours.getBytes()));
+var rules = parser.rules(true);
+var time = LocalDateTime.parse("2020-08-07T12:09:17");
+OpeningHoursEvaluator.isOpenAtUntil(time, rules);
+```
+
 #### When is it open next?
 
 ```java
