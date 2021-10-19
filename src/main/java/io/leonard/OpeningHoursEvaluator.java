@@ -42,6 +42,20 @@ public class OpeningHoursEvaluator {
         && open.anyMatch(rule -> rule.isTwentyfourseven() || timeMatchesRule(time, rule));
   }
 
+  /**
+   * @return LocalDateTime in Optional, representing next closing time ;
+   * or empty Optional if place is either closed at time or never closed at all.
+   */
+  public static Optional<LocalDateTime> isOpenAtUntil(LocalDateTime time, List<Rule> rules) {
+    var closed = getClosedRules(rules);
+    var open = getOpenRules(rules);
+    if (closed.anyMatch(rule -> timeMatchesRule(time, rule))) return Optional.empty();
+    return getTimeRangesOnThatDay(time, open)
+        .filter(r -> r.surrounds(time.toLocalTime()))
+        .findFirst()
+        .map(r -> time.toLocalDate().atTime(r.end));
+  }
+
   public static Optional<LocalDateTime> wasLastOpen(LocalDateTime time, List<Rule> rules) {
     return isOpenIterative(time, rules, false, MAX_SEARCH_DAYS);
   }
