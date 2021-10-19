@@ -60,6 +60,15 @@ public class OpeningHoursEvaluator {
     return isOpenIterative(time, rules, true, searchDays);
   }
 
+  /**
+   * This is private function, this doc-string means only help onboard new devs.
+   *
+   * @param initialTime Starting point in time to search from.
+   * @param rules       From parser
+   * @param forward     Whether to search in future (true)? or in the past(false)?
+   * @param searchDays  Limit search scope in days.
+   * @return an Optional LocalDateTime
+   */
   private static Optional<LocalDateTime> isOpenIterative(
       final LocalDateTime initialTime,
       final List<Rule> rules,
@@ -129,9 +138,10 @@ public class OpeningHoursEvaluator {
   private static Stream<Rule> getClosedRules(List<Rule> rules) {
     return rules.stream()
         .filter(
-            r ->
-                r.getModifier() != null
-                    && CLOSED_MODIFIERS.contains(r.getModifier().getModifier()));
+            r -> {
+              var modifier = r.getModifier();
+              return modifier != null && CLOSED_MODIFIERS.contains(modifier.getModifier());
+            });
   }
 
   private static boolean timeMatchesRule(LocalDateTime time, Rule rule) {
