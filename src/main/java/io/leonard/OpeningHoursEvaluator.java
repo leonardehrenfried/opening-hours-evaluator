@@ -10,20 +10,26 @@ import ch.poole.openinghoursparser.RuleModifier;
 import ch.poole.openinghoursparser.TimeSpan;
 import ch.poole.openinghoursparser.WeekDay;
 import ch.poole.openinghoursparser.WeekDayRange;
+
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class OpeningHoursEvaluator {
 
   private static final Set<RuleModifier.Modifier> CLOSED_MODIFIERS = Set.of(CLOSED, OFF);
   private static final Set<RuleModifier.Modifier> OPEN_MODIFIERS = Set.of(OPEN, UNKNOWN);
+  private static final Map<WeekDay, DayOfWeek> weekDayToDayOfWeek = Map.of(
+      WeekDay.MO, DayOfWeek.MONDAY,
+      WeekDay.TU, DayOfWeek.TUESDAY,
+      WeekDay.WE, DayOfWeek.WEDNESDAY,
+      WeekDay.TH, DayOfWeek.THURSDAY,
+      WeekDay.FR, DayOfWeek.FRIDAY,
+      WeekDay.SA, DayOfWeek.SATURDAY,
+      WeekDay.SU, DayOfWeek.SUNDAY
+  );
 
   // when calculating the next time the hours are open, how many days should you go into the future
   // this protects against stack overflows when the place is never going to open again
@@ -38,21 +44,21 @@ public class OpeningHoursEvaluator {
 
   public static Optional<LocalDateTime> wasLastOpen(LocalDateTime time, List<Rule> rules) {
     return isOpenIterative(time, rules, false, MAX_SEARCH_DAYS);
-  };
+  }
 
   public static Optional<LocalDateTime> wasLastOpen(
       LocalDateTime time, List<Rule> rules, int searchDays) {
     return isOpenIterative(time, rules, false, searchDays);
-  };
+  }
 
   public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules) {
     return isOpenIterative(time, rules, true, MAX_SEARCH_DAYS);
-  };
+  }
 
   public static Optional<LocalDateTime> isOpenNext(
       LocalDateTime time, List<Rule> rules, int searchDays) {
     return isOpenIterative(time, rules, true, searchDays);
-  };
+  }
 
   private static Optional<LocalDateTime> isOpenIterative(
       final LocalDateTime initialTime,
@@ -148,7 +154,7 @@ public class OpeningHoursEvaluator {
     // if the end day is null it means that it's just a single day like in "Th
     // 10:00-18:00"
     if (range.getEndDay() == null) {
-      return time.getDayOfWeek().equals(toDayOfWeek(range.getStartDay()));
+      return time.getDayOfWeek().equals(weekDayToDayOfWeek.getOrDefault(range.getStartDay(), null));
     }
     int ordinal = time.getDayOfWeek().ordinal();
     return range.getStartDay().ordinal() <= ordinal && range.getEndDay().ordinal() >= ordinal;
@@ -177,14 +183,4 @@ public class OpeningHoursEvaluator {
     } else return span;
   }
 
-  private static DayOfWeek toDayOfWeek(WeekDay day) {
-    if (day == WeekDay.MO) return DayOfWeek.MONDAY;
-    else if (day == WeekDay.TU) return DayOfWeek.TUESDAY;
-    else if (day == WeekDay.WE) return DayOfWeek.WEDNESDAY;
-    else if (day == WeekDay.TH) return DayOfWeek.THURSDAY;
-    else if (day == WeekDay.FR) return DayOfWeek.FRIDAY;
-    else if (day == WeekDay.SA) return DayOfWeek.SATURDAY;
-    else if (day == WeekDay.SU) return DayOfWeek.SUNDAY;
-    else return null;
-  }
 }
