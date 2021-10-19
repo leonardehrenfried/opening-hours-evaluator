@@ -10,20 +10,26 @@ import ch.poole.openinghoursparser.RuleModifier;
 import ch.poole.openinghoursparser.TimeSpan;
 import ch.poole.openinghoursparser.WeekDay;
 import ch.poole.openinghoursparser.WeekDayRange;
+
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class OpeningHoursEvaluator {
 
   private static final Set<RuleModifier.Modifier> CLOSED_MODIFIERS = Set.of(CLOSED, OFF);
   private static final Set<RuleModifier.Modifier> OPEN_MODIFIERS = Set.of(OPEN, UNKNOWN);
+  private static final Map<WeekDay, DayOfWeek> weekDayToDayOfWeek = Map.of(
+      WeekDay.MO, DayOfWeek.MONDAY,
+      WeekDay.TU, DayOfWeek.TUESDAY,
+      WeekDay.WE, DayOfWeek.WEDNESDAY,
+      WeekDay.TH, DayOfWeek.THURSDAY,
+      WeekDay.FR, DayOfWeek.FRIDAY,
+      WeekDay.SA, DayOfWeek.SATURDAY,
+      WeekDay.SU, DayOfWeek.SUNDAY
+  );
 
   // when calculating the next time the hours are open, how many days should you go into the future
   // this protects against stack overflows when the place is never going to open again
@@ -36,24 +42,47 @@ public class OpeningHoursEvaluator {
         && open.anyMatch(rule -> rule.isTwentyfourseven() || timeMatchesRule(time, rule));
   }
 
+  /**
+   * @return LocalDateTime in Optional, representing next closing time ;
+   * or empty Optional if place is either closed at time or never closed at all.
+   */
+  public static Optional<LocalDateTime> isOpenAtUntil(LocalDateTime time, List<Rule> rules) {
+    var closed = getClosedRules(rules);
+    var open = getOpenRules(rules);
+    if (closed.anyMatch(rule -> timeMatchesRule(time, rule))) return Optional.empty();
+    return getTimeRangesOnThatDay(time, open)
+        .filter(r -> r.surrounds(time.toLocalTime()))
+        .findFirst()
+        .map(r -> time.toLocalDate().atTime(r.end));
+  }
+
   public static Optional<LocalDateTime> wasLastOpen(LocalDateTime time, List<Rule> rules) {
     return isOpenIterative(time, rules, false, MAX_SEARCH_DAYS);
-  };
+  }
 
   public static Optional<LocalDateTime> wasLastOpen(
       LocalDateTime time, List<Rule> rules, int searchDays) {
     return isOpenIterative(time, rules, false, searchDays);
-  };
+  }
 
   public static Optional<LocalDateTime> isOpenNext(LocalDateTime time, List<Rule> rules) {
     return isOpenIterative(time, rules, true, MAX_SEARCH_DAYS);
-  };
+  }
 
   public static Optional<LocalDateTime> isOpenNext(
       LocalDateTime time, List<Rule> rules, int searchDays) {
     return isOpenIterative(time, rules, true, searchDays);
-  };
+  }
 
+  /**
+   * This is private function, this doc-string means only help onboard new devs.
+   *
+   * @param initialTime Starting point in time to search from.
+   * @param rules       From parser
+   * @param forward     Whether to search in future (true)? or in the past(false)?
+   * @param searchDays  Limit search scope in days.
+   * @return an Optional LocalDateTime
+   */
   private static Optional<LocalDateTime> isOpenIterative(
       final LocalDateTime initialTime,
       final List<Rule> rules,
@@ -72,16 +101,10 @@ public class OpeningHoursEvaluator {
         var openRangesOnThatDay = getTimeRangesOnThatDay(time, open);
         var closedRangesThatDay = getTimeRangesOnThatDay(time, closed);
 
-        var endOfExclusion =
-            forward
-                ? closedRangesThatDay
-                    .filter(r -> r.surrounds(time.toLocalTime()))
-                    .findFirst()
-                    .map(r -> time.toLocalDate().atTime(r.end))
-                : closedRangesThatDay
-                    .filter(r -> r.surrounds(time.toLocalTime()))
-                    .findFirst()
-                    .map(r -> time.toLocalDate().atTime(r.start));
+        var endOfExclusion = closedRangesThatDay
+            .filter(r -> r.surrounds(time.toLocalTime()))
+            .findFirst()
+            .map(r -> time.toLocalDate().atTime(forward ? r.end : r.start));
 
         var startOfNextOpening =
             forward
@@ -111,8 +134,8 @@ public class OpeningHoursEvaluator {
     return Optional.empty();
   }
 
-  private static Stream<TimeRange> getTimeRangesOnThatDay(LocalDateTime time, Stream<Rule> open) {
-    return open.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+  private static Stream<TimeRange> getTimeRangesOnThatDay(LocalDateTime time, Stream<Rule> ruleStream) {
+    return ruleStream.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
         .filter(r -> !Objects.isNull(r.getTimes()))
         .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
   }
@@ -129,9 +152,10 @@ public class OpeningHoursEvaluator {
   private static Stream<Rule> getClosedRules(List<Rule> rules) {
     return rules.stream()
         .filter(
-            r ->
-                r.getModifier() != null
-                    && CLOSED_MODIFIERS.contains(r.getModifier().getModifier()));
+            r -> {
+              var modifier = r.getModifier();
+              return modifier != null && CLOSED_MODIFIERS.contains(modifier.getModifier());
+            });
   }
 
   private static boolean timeMatchesRule(LocalDateTime time, Rule rule) {
@@ -148,7 +172,7 @@ public class OpeningHoursEvaluator {
     // if the end day is null it means that it's just a single day like in "Th
     // 10:00-18:00"
     if (range.getEndDay() == null) {
-      return time.getDayOfWeek().equals(toDayOfWeek(range.getStartDay()));
+      return time.getDayOfWeek().equals(weekDayToDayOfWeek.getOrDefault(range.getStartDay(), null));
     }
     int ordinal = time.getDayOfWeek().ordinal();
     return range.getStartDay().ordinal() <= ordinal && range.getEndDay().ordinal() >= ordinal;
@@ -177,14 +201,4 @@ public class OpeningHoursEvaluator {
     } else return span;
   }
 
-  private static DayOfWeek toDayOfWeek(WeekDay day) {
-    if (day == WeekDay.MO) return DayOfWeek.MONDAY;
-    else if (day == WeekDay.TU) return DayOfWeek.TUESDAY;
-    else if (day == WeekDay.WE) return DayOfWeek.WEDNESDAY;
-    else if (day == WeekDay.TH) return DayOfWeek.THURSDAY;
-    else if (day == WeekDay.FR) return DayOfWeek.FRIDAY;
-    else if (day == WeekDay.SA) return DayOfWeek.SATURDAY;
-    else if (day == WeekDay.SU) return DayOfWeek.SUNDAY;
-    else return null;
-  }
 }

@@ -1,17 +1,18 @@
 package io.leonard;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import ch.poole.openinghoursparser.OpeningHoursParseException;
 import ch.poole.openinghoursparser.OpeningHoursParser;
 import ch.poole.openinghoursparser.Rule;
+
 import java.io.ByteArrayInputStream;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OpeningHoursEvaluatorTest {
 
@@ -21,6 +22,16 @@ public class OpeningHoursEvaluatorTest {
     var rules = parseOpeningHours(openingHours);
     var parsed = LocalDateTime.parse(time);
     assertTrue(OpeningHoursEvaluator.isOpenAt(parsed, rules));
+  }
+
+  @ParameterizedTest
+  @CsvFileSource(resources = "/open-until.csv", numLinesToSkip = 1)
+  void shouldReturnClosingTimes(String time, String openingHours, String openUntil) throws OpeningHoursParseException {
+    var rules = parseOpeningHours(openingHours);
+    var parsed = LocalDateTime.parse(time);
+    var nullableOpenUntil = openUntil.equals("None") ? null : LocalDateTime.parse(openUntil);
+    var expected = Optional.ofNullable(nullableOpenUntil);
+    assertEquals(expected, OpeningHoursEvaluator.isOpenAtUntil(parsed, rules));
   }
 
   @ParameterizedTest
