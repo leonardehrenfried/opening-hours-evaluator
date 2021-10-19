@@ -120,8 +120,8 @@ public class OpeningHoursEvaluator {
     return Optional.empty();
   }
 
-  private static Stream<TimeRange> getTimeRangesOnThatDay(LocalDateTime time, Stream<Rule> open) {
-    return open.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+  private static Stream<TimeRange> getTimeRangesOnThatDay(LocalDateTime time, Stream<Rule> ruleStream) {
+    return ruleStream.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
         .filter(r -> !Objects.isNull(r.getTimes()))
         .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
   }
