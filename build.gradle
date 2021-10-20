@@ -23,11 +23,11 @@ compileJava {
 
 ext {
     junitVersion = '5.6.2'
-    parserVersion = '0.22.0'
+    parserVersion = '0.25.0'
 }
 
 dependencies {
-    api group: 'ch.poole', name: 'OpeningHoursParser', version: '0.23.2'
+    api group: 'ch.poole', name: 'OpeningHoursParser', version: parserVersion
 
     testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion
