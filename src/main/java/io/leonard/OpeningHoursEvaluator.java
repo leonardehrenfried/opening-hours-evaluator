@@ -10,7 +10,6 @@ import ch.poole.openinghoursparser.RuleModifier;
 import ch.poole.openinghoursparser.TimeSpan;
 import ch.poole.openinghoursparser.WeekDay;
 import ch.poole.openinghoursparser.WeekDayRange;
-
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -21,15 +20,15 @@ public class OpeningHoursEvaluator {
 
   private static final Set<RuleModifier.Modifier> CLOSED_MODIFIERS = Set.of(CLOSED, OFF);
   private static final Set<RuleModifier.Modifier> OPEN_MODIFIERS = Set.of(OPEN, UNKNOWN);
-  private static final Map<WeekDay, DayOfWeek> weekDayToDayOfWeek = Map.of(
-      WeekDay.MO, DayOfWeek.MONDAY,
-      WeekDay.TU, DayOfWeek.TUESDAY,
-      WeekDay.WE, DayOfWeek.WEDNESDAY,
-      WeekDay.TH, DayOfWeek.THURSDAY,
-      WeekDay.FR, DayOfWeek.FRIDAY,
-      WeekDay.SA, DayOfWeek.SATURDAY,
-      WeekDay.SU, DayOfWeek.SUNDAY
-  );
+  private static final Map<WeekDay, DayOfWeek> weekDayToDayOfWeek =
+      Map.of(
+          WeekDay.MO, DayOfWeek.MONDAY,
+          WeekDay.TU, DayOfWeek.TUESDAY,
+          WeekDay.WE, DayOfWeek.WEDNESDAY,
+          WeekDay.TH, DayOfWeek.THURSDAY,
+          WeekDay.FR, DayOfWeek.FRIDAY,
+          WeekDay.SA, DayOfWeek.SATURDAY,
+          WeekDay.SU, DayOfWeek.SUNDAY);
 
   // when calculating the next time the hours are open, how many days should you go into the future
   // this protects against stack overflows when the place is never going to open again
@@ -43,8 +42,8 @@ public class OpeningHoursEvaluator {
   }
 
   /**
-   * @return LocalDateTime in Optional, representing next closing time ;
-   * or empty Optional if place is either closed at time or never closed at all.
+   * @return LocalDateTime in Optional, representing next closing time ; or empty Optional if place
+   *     is either closed at time or never closed at all.
    */
   public static Optional<LocalDateTime> isOpenUntil(LocalDateTime time, List<Rule> rules) {
     var closed = getClosedRules(rules);
@@ -78,9 +77,9 @@ public class OpeningHoursEvaluator {
    * This is private function, this doc-string means only help onboard new devs.
    *
    * @param initialTime Starting point in time to search from.
-   * @param rules       From parser
-   * @param forward     Whether to search in future (true)? or in the past(false)?
-   * @param searchDays  Limit search scope in days.
+   * @param rules From parser
+   * @param forward Whether to search in future (true)? or in the past(false)?
+   * @param searchDays Limit search scope in days.
    * @return an Optional LocalDateTime
    */
   private static Optional<LocalDateTime> isOpenIterative(
@@ -101,10 +100,11 @@ public class OpeningHoursEvaluator {
         var openRangesOnThatDay = getTimeRangesOnThatDay(time, open);
         var closedRangesThatDay = getTimeRangesOnThatDay(time, closed);
 
-        var endOfExclusion = closedRangesThatDay
-            .filter(r -> r.surrounds(time.toLocalTime()))
-            .findFirst()
-            .map(r -> time.toLocalDate().atTime(forward ? r.end : r.start));
+        var endOfExclusion =
+            closedRangesThatDay
+                .filter(r -> r.surrounds(time.toLocalTime()))
+                .findFirst()
+                .map(r -> time.toLocalDate().atTime(forward ? r.end : r.start));
 
         var startOfNextOpening =
             forward
@@ -134,8 +134,10 @@ public class OpeningHoursEvaluator {
     return Optional.empty();
   }
 
-  private static Stream<TimeRange> getTimeRangesOnThatDay(LocalDateTime time, Stream<Rule> ruleStream) {
-    return ruleStream.filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+  private static Stream<TimeRange> getTimeRangesOnThatDay(
+      LocalDateTime time, Stream<Rule> ruleStream) {
+    return ruleStream
+        .filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
         .filter(r -> !Objects.isNull(r.getTimes()))
         .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
   }
@@ -200,5 +202,4 @@ public class OpeningHoursEvaluator {
       return List.of(allDay);
     } else return span;
   }
-
 }
