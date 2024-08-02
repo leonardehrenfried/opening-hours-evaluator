@@ -1,20 +1,14 @@
 package io.leonard;
 
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.CLOSED;
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.OFF;
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.OPEN;
-import static ch.poole.openinghoursparser.RuleModifier.Modifier.UNKNOWN;
+import ch.poole.openinghoursparser.*;
 
-import ch.poole.openinghoursparser.Rule;
-import ch.poole.openinghoursparser.RuleModifier;
-import ch.poole.openinghoursparser.TimeSpan;
-import ch.poole.openinghoursparser.WeekDay;
-import ch.poole.openinghoursparser.WeekDayRange;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Stream;
+
+import static ch.poole.openinghoursparser.RuleModifier.Modifier.*;
 
 public class OpeningHoursEvaluator {
 
@@ -43,7 +37,7 @@ public class OpeningHoursEvaluator {
 
   /**
    * @return LocalDateTime in Optional, representing next closing time ; or empty Optional if place
-   *     is either closed at time or never closed at all.
+   * is either closed at time or never closed at all.
    */
   public static Optional<LocalDateTime> isOpenUntil(LocalDateTime time, List<Rule> rules) {
     var closed = getClosedRules(rules);
@@ -77,9 +71,9 @@ public class OpeningHoursEvaluator {
    * This is private function, this doc-string means only help onboard new devs.
    *
    * @param initialTime Starting point in time to search from.
-   * @param rules From parser
-   * @param forward Whether to search in future (true)? or in the past(false)?
-   * @param searchDays Limit search scope in days.
+   * @param rules       From parser
+   * @param forward     Whether to search in future (true)? or in the past(false)?
+   * @param searchDays  Limit search scope in days.
    * @return an Optional LocalDateTime
    */
   private static Optional<LocalDateTime> isOpenIterative(
@@ -109,13 +103,13 @@ public class OpeningHoursEvaluator {
         var startOfNextOpening =
             forward
                 ? openRangesOnThatDay
-                    .filter(range -> range.start.isAfter(time.toLocalTime()))
-                    .min(TimeRange.startComparator)
-                    .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
+                .filter(range -> range.start.isAfter(time.toLocalTime()))
+                .min(TimeRange.startComparator)
+                .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
                 : openRangesOnThatDay
-                    .filter(range -> range.end.isBefore(time.toLocalTime()))
-                    .max(TimeRange.endComparator)
-                    .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
+                .filter(range -> range.end.isBefore(time.toLocalTime()))
+                .max(TimeRange.endComparator)
+                .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
 
         var opensNextThatDay = endOfExclusion.or(() -> startOfNextOpening);
         if (opensNextThatDay.isPresent()) {
@@ -161,9 +155,11 @@ public class OpeningHoursEvaluator {
   }
 
   private static boolean timeMatchesRule(LocalDateTime time, Rule rule) {
-    return timeMatchesDayRanges(time, rule.getDays())
+    return (timeMatchesDayRanges(time, rule.getDays())
+        || rule.getDays() == null
+        && dateMatchesDateRanges(time, rule.getDates()))
         && nullToEntireDay(rule.getTimes()).stream()
-            .anyMatch(timeSpan -> timeMatchesHours(time, timeSpan));
+        .anyMatch(timeSpan -> timeMatchesHours(time, timeSpan));
   }
 
   private static boolean timeMatchesDayRanges(LocalDateTime time, List<WeekDayRange> ranges) {
@@ -178,6 +174,40 @@ public class OpeningHoursEvaluator {
     }
     int ordinal = time.getDayOfWeek().ordinal();
     return range.getStartDay().ordinal() <= ordinal && range.getEndDay().ordinal() >= ordinal;
+  }
+
+  private static boolean dateMatchesDateRanges(LocalDateTime time, List<DateRange> ranges) {
+    return nullToEmptyList(ranges).stream().anyMatch(dateRange -> dateMatchesDateRange(time, dateRange));
+  }
+
+  private static boolean dateMatchesDateRange(LocalDateTime time, DateRange range) {
+    // if the end date is null it means that it's just a single date like in "2020 Aug 11"
+    DateWithOffset startDate = range.getStartDate();
+    boolean afterStartDate = isSameDateOrAfter(time, startDate);
+
+    if (range.getEndDate() == null) {
+      return afterStartDate;
+    }
+    DateWithOffset endDate = range.getEndDate();
+    boolean beforeEndDate = !isSameDateOrAfter(time.minusDays(1), endDate);
+    return afterStartDate && beforeEndDate;
+  }
+
+  private static boolean isSameDateOrAfter(LocalDateTime time, DateWithOffset startDate) {
+    return (
+      time.getYear() > startDate.getYear() ||
+        (
+          time.getYear() == startDate.getYear() &&
+            startDate.getMonth() != null &&
+              (
+                time.getMonth().ordinal() > startDate.getMonth().ordinal() ||
+                  (
+                    time.getMonth().ordinal() == startDate.getMonth().ordinal() &&
+                      time.getDayOfMonth() >= startDate.getDay()
+                  )
+              )
+        )
+    );
   }
 
   private static boolean timeMatchesHours(LocalDateTime time, TimeSpan timeSpan) {
