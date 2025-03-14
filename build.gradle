@@ -29,9 +29,8 @@ ext {
 dependencies {
     api group: 'ch.poole', name: 'OpeningHoursParser', version: parserVersion
 
-    testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion
-    testRuntimeOnly  group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
+    testImplementation  group: 'org.junit.jupiter', name: 'junit-jupiter', version: junitVersion
+    testRuntimeOnly  group: 'org.junit.platform', name: 'junit-platform-launcher'
     // because we bundle everything up as a fat jar, this needs to be here a second time
     testImplementation group: 'ch.poole', name: 'OpeningHoursParser', version: parserVersion
 }
