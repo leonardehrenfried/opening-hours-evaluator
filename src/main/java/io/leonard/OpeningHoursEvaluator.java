@@ -5,6 +5,7 @@ import static ch.poole.openinghoursparser.RuleModifier.Modifier.OFF;
 import static ch.poole.openinghoursparser.RuleModifier.Modifier.OPEN;
 import static ch.poole.openinghoursparser.RuleModifier.Modifier.UNKNOWN;
 
+import ch.poole.openinghoursparser.Holiday;
 import ch.poole.openinghoursparser.Rule;
 import ch.poole.openinghoursparser.RuleModifier;
 import ch.poole.openinghoursparser.TimeSpan;
@@ -137,7 +138,7 @@ public class OpeningHoursEvaluator {
   private static Stream<TimeRange> getTimeRangesOnThatDay(
       LocalDateTime time, Stream<Rule> ruleStream) {
     return ruleStream
-        .filter(rule -> timeMatchesDayRanges(time, rule.getDays()))
+        .filter(rule -> timeMatchesDayRanges(time, rule.getDays(), rule.getHolidays()))
         .filter(r -> !Objects.isNull(r.getTimes()))
         .flatMap(r -> r.getTimes().stream().map(TimeRange::new));
   }
@@ -161,13 +162,15 @@ public class OpeningHoursEvaluator {
   }
 
   private static boolean timeMatchesRule(LocalDateTime time, Rule rule) {
-    return timeMatchesDayRanges(time, rule.getDays())
+    return timeMatchesDayRanges(time, rule.getDays(), rule.getHolidays())
         && nullToEntireDay(rule.getTimes()).stream()
             .anyMatch(timeSpan -> timeMatchesHours(time, timeSpan));
   }
 
-  private static boolean timeMatchesDayRanges(LocalDateTime time, List<WeekDayRange> ranges) {
-    return nullToEmptyList(ranges).stream().anyMatch(dayRange -> timeMatchesDay(time, dayRange));
+  private static boolean timeMatchesDayRanges(
+      LocalDateTime time, List<WeekDayRange> ranges, List<Holiday> holidays) {
+    return nullToImplicitDayRanges(ranges, holidays).stream()
+        .anyMatch(dayRange -> timeMatchesDay(time, dayRange));
   }
 
   private static boolean timeMatchesDay(LocalDateTime time, WeekDayRange range) {
@@ -189,9 +192,21 @@ public class OpeningHoursEvaluator {
     return time.getHour() * 60 + time.getMinute();
   }
 
-  private static <T> List<T> nullToEmptyList(List<T> list) {
-    if (list == null) return Collections.emptyList();
-    else return list;
+  private static List<WeekDayRange> nullToImplicitDayRanges(
+      List<WeekDayRange> ranges, List<Holiday> holidays) {
+    if (ranges == null && holidays == null) {
+      // If both the week day ranges and the holidays are null, assume the whole week Mo-Su is meant
+      var allWeek = new WeekDayRange();
+      allWeek.setStartDay(WeekDay.MO);
+      allWeek.setEndDay(WeekDay.SU);
+      return List.of(allWeek);
+    } else if (ranges == null) {
+      // If only the week day ranges are null, then holidays are specified, so return an empty list
+      // of day ranges to make the evaluation depend on the holydays values
+      return Collections.emptyList();
+    }
+    // Otherwise, ranges is non-null, return it as is
+    else return ranges;
   }
 
   private static List<TimeSpan> nullToEntireDay(List<TimeSpan> span) {
