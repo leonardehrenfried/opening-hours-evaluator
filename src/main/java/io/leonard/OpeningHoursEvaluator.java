@@ -202,7 +202,7 @@ public class OpeningHoursEvaluator {
       return List.of(allWeek);
     } else if (ranges == null) {
       // If only the week day ranges are null, then holidays are specified, so return an empty list
-      // of day ranges to make the evaluation depend on the holydays values
+      // of day ranges to make the evaluation depend on the holidays values
       return Collections.emptyList();
     }
     // Otherwise, ranges is non-null, return it as is
