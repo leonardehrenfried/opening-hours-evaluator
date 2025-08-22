@@ -37,7 +37,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <junit.version>5.13.4</junit.version>
-    <parser.version>0.25.0</parser.version>
+    <parser.version>0.28.2</parser.version>
     <spotless.version>2.46.1</spotless.version>
   </properties>
 
