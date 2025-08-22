@@ -5,7 +5,7 @@ if the POI is open or not at the specified time.
 
 ### Installation
 
-![Maven Central](https://img.shields.io/maven-central/v/io.leonard/opening-hours-evaluator)
+[![Maven Central](https://img.shields.io/maven-central/v/io.leonard/opening-hours-evaluator)](https://mvnrepository.com/artifact/io.leonard/opening-hours-evaluator)
 
 It's [available on Maven Central](https://mvnrepository.com/artifact/io.leonard/opening-hours-evaluator).
 
