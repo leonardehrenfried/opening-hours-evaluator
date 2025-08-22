@@ -4,7 +4,7 @@
 
   <groupId>io.leonard</groupId>
   <artifactId>opening-hours-evaluator</artifactId>
-  <version>2.0.1-SNAPSHOT</version>
+  <version>2.1.0</version>
   <packaging>jar</packaging>
 
   <name>OpenStreetMap Opening Hours evaluator</name>
@@ -30,7 +30,7 @@
     <connection>scm:git:https://github.com/leonardehrenfried/opening-hours-evaluator.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/leonardehrenfried/opening-hours-evaluator.git</developerConnection>
     <url>https://github.com/leonardehrenfried/opening-hours-evaluator</url>
-    <tag>HEAD</tag>
+    <tag>2.1.0</tag>
   </scm>
 
   <properties>
