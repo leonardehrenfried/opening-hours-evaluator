@@ -1,3 +1,5 @@
 release:
-	./gradlew clean test jar publish closeAndReleaseRepository
-	git push --tags
+	git checkout main
+	git pull
+	mvn release:clean release:prepare release:perform -Dgoals=deploy release:clean
+
