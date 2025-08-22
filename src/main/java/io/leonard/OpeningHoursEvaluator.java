@@ -41,8 +41,9 @@ public class OpeningHoursEvaluator {
   public static boolean isOpenAt(LocalDateTime time, List<Rule> rules) {
     var closed = getClosedRules(rules);
     var open = getOpenRules(rules);
-    return closed.noneMatch(rule -> timeMatchesRule(time, rule))
-        && open.anyMatch(rule -> rule.isTwentyfourseven() || timeMatchesRule(time, rule));
+    var notClosed = closed.noneMatch(rule -> timeMatchesRule(time, rule));
+    var isOpen = open.anyMatch(rule -> rule.isTwentyfourseven() || timeMatchesRule(time, rule));
+    return notClosed && isOpen;
   }
 
   /**
@@ -106,20 +107,20 @@ public class OpeningHoursEvaluator {
 
         var endOfExclusion =
             closedRangesThatDay
-                .filter(r -> r.surrounds(time.toLocalTime()))
-                .findFirst()
-                .map(r -> time.toLocalDate().atTime(forward ? r.end : r.start));
+            .filter(r -> r.surrounds(time.toLocalTime()))
+            .findFirst()
+            .map(r -> time.toLocalDate().atTime(forward ? r.end : r.start));
 
         var startOfNextOpening =
             forward
-                ? openRangesOnThatDay
-                .filter(range -> range.start.isAfter(time.toLocalTime()))
-                .min(TimeRange.startComparator)
-                .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
-                : openRangesOnThatDay
-                .filter(range -> range.end.isBefore(time.toLocalTime()))
-                .max(TimeRange.endComparator)
-                .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
+            ? openRangesOnThatDay
+            .filter(range -> range.start.isAfter(time.toLocalTime()))
+            .min(TimeRange.startComparator)
+            .map(timeRange -> time.toLocalDate().atTime(timeRange.start))
+            : openRangesOnThatDay
+            .filter(range -> range.end.isBefore(time.toLocalTime()))
+            .max(TimeRange.endComparator)
+            .map(timeRange -> time.toLocalDate().atTime(timeRange.end));
 
         var opensNextThatDay = endOfExclusion.or(() -> startOfNextOpening);
         if (opensNextThatDay.isPresent()) {
@@ -130,8 +131,8 @@ public class OpeningHoursEvaluator {
         // of the following day and try again
         nextTime =
             forward
-                ? time.toLocalDate().plusDays(1).atStartOfDay()
-                : time.toLocalDate().minusDays(1).atTime(LocalTime.MAX);
+            ? time.toLocalDate().plusDays(1).atStartOfDay()
+            : time.toLocalDate().minusDays(1).atTime(LocalTime.MAX);
       }
     }
 
@@ -150,35 +151,34 @@ public class OpeningHoursEvaluator {
     return rules.stream()
         .filter(
             r -> {
-              var modifier = r.getModifier();
-              return modifier == null || OPEN_MODIFIERS.contains(modifier.getModifier());
-            });
+          var modifier = r.getModifier();
+          return modifier == null || OPEN_MODIFIERS.contains(modifier.getModifier());
+        });
   }
 
   private static Stream<Rule> getClosedRules(List<Rule> rules) {
     return rules.stream()
         .filter(
             r -> {
-              var modifier = r.getModifier();
-              return modifier != null && CLOSED_MODIFIERS.contains(modifier.getModifier());
-            });
+          var modifier = r.getModifier();
+          return modifier != null && CLOSED_MODIFIERS.contains(modifier.getModifier());
+        });
   }
 
   private static boolean timeMatchesRule(LocalDateTime time, Rule rule) {
-    return (timeMatchesDayRanges(time, rule.getDays(), rule.getHolidays())
-        || rule.getDays() == null
-        && dateMatchesDateRanges(time, rule.getDates()))
-        && nullToEntireDay(rule.getTimes()).stream()
-        .anyMatch(timeSpan -> timeMatchesHours(time, timeSpan));
+    var weekdayMatches = timeMatchesDayRanges(time, rule.getDays(), rule.getHolidays());
+    var dateMatches = rule.getDays() == null && (rule.getDates() == null || dateMatchesDateRanges(time, rule.getDates()));
+    var timeMatches = nullToEntireDay(rule.getTimes()).stream().anyMatch(timeSpan -> timeMatchesHours(time, timeSpan));
+    return (dateMatches || weekdayMatches) && timeMatches;
   }
 
   private static boolean timeMatchesDayRanges(
       LocalDateTime time, List<WeekDayRange> ranges, List<Holiday> holidays) {
     return nullToImplicitDayRanges(ranges, holidays).stream()
-        .anyMatch(dayRange -> timeMatchesDay(time, dayRange));
+        .anyMatch(dayRange -> timeMatchesWeekdays(time, dayRange));
   }
 
-  private static boolean timeMatchesDay(LocalDateTime time, WeekDayRange range) {
+  private static boolean timeMatchesWeekdays(LocalDateTime time, WeekDayRange range) {
     // if the end day is null it means that it's just a single day like in "Th
     // 10:00-18:00"
     if (range.getEndDay() == null) {
@@ -207,10 +207,10 @@ public class OpeningHoursEvaluator {
 
   private static boolean isSameDateOrAfter(LocalDateTime time, DateWithOffset startDate) {
     return (
-      time.getYear() > startDate.getYear() ||
+        time.getYear() > startDate.getYear() ||
         (
           time.getYear() == startDate.getYear() &&
-            startDate.getMonth() != null &&
+                startDate.getMonth() != null &&
               (
                 time.getMonth().ordinal() > startDate.getMonth().ordinal() ||
                   (
