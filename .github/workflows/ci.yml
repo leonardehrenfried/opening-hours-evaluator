@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  MAVEN_ARGS: "--no-transfer-progress -Dstyle.color=always"
+
 jobs:
   build:
 
