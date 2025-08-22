@@ -31,8 +31,9 @@
 
   <scm>
     <connection>scm:git:https://github.com/leonardehrenfried/opening-hours-evaluator.git</connection>
-    <developerConnection>scm:git:https://github.com/leonardehrenfried/opening-hours-evaluator.git</developerConnection>
-    <url>https://github.com/leonardehrenfried/opening-hours-parser</url>
+    <developerConnection>scm:git:ssh://git@github.com/leonardehrenfried/opening-hours-evaluator.git</developerConnection>
+    <url>https://github.com/leonardehrenfried/opening-hours-evaluator</url>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
