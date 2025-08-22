@@ -166,7 +166,7 @@ public class OpeningHoursEvaluator {
   }
 
   private static boolean timeMatchesRule(LocalDateTime time, Rule rule) {
-    var weekdayMatches = timeMatchesDayRanges(time, rule.getDays(), rule.getHolidays());
+    var weekdayMatches = rule.getDays() != null && timeMatchesDayRanges(time, rule.getDays(), rule.getHolidays());
     var dateMatches = rule.getDays() == null && (rule.getDates() == null || dateMatchesDateRanges(time, rule.getDates()));
     var timeMatches = nullToEntireDay(rule.getTimes()).stream().anyMatch(timeSpan -> timeMatchesHours(time, timeSpan));
     return (dateMatches || weekdayMatches) && timeMatches;
