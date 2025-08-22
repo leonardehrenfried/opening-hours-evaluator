@@ -16,7 +16,6 @@
         "org.apache.httpcomponents.client5:httpclient5",
         "ch.qos.logback:logback-classic",
         "org.locationtech.jts:jts-core",
-        // maven plugins
         "com.diffplug.spotless:spotless-maven-plugin",
         "org.apache.maven.plugins:maven-surefire-plugin",
         "org.codehaus.mojo:build-helper-maven-plugin",
@@ -26,13 +25,11 @@
         "org.apache.maven.plugins:maven-source-plugin",
         "org.apache.maven.plugins:maven-javadoc-plugin",
         "com.google.guava:guava",
-        "com.google.truth:truth"
-      ],
-      "matchPackagePrefixes": [
-        "org.junit.jupiter:",
-        "org.slf4j:",
-        "com.fasterxml.jackson",
-        "jakarta.annotation"
+        "com.google.truth:truth",
+        "org.junit.jupiter:{/,}**",
+        "org.slf4j:{/,}**",
+        "com.fasterxml.jackson{/,}**",
+        "jakarta.annotation{/,}**"
       ],
       "automerge": true,
       "schedule": "monthly"
