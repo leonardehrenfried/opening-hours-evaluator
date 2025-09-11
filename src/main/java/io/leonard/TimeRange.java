@@ -16,7 +16,7 @@ public class TimeRange {
   }
 
   public boolean surrounds(LocalTime time) {
-    return time.isAfter(start) && time.isBefore(end);
+    return (time.equals(start) || time.isAfter(start)) && time.isBefore(end);
   }
 
   public static Comparator<TimeRange> startComparator =
