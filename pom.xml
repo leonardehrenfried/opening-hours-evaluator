@@ -4,7 +4,7 @@
 
   <groupId>io.leonard</groupId>
   <artifactId>opening-hours-evaluator</artifactId>
-  <version>2.1.2-SNAPSHOT</version>
+  <version>2.1.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>OpenStreetMap Opening Hours evaluator</name>
